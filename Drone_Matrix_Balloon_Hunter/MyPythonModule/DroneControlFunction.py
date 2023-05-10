@@ -2,7 +2,8 @@
 
 import time
 import math
-import Queue
+# import Queue
+from queue import Queue
 import numpy as np
 import dronekit
 from dronekit import connect
@@ -15,8 +16,8 @@ import socket
 import threading
 import multiprocessing
 import os
-# __builtin.variables can cross multiple files (for imported functions).
-import __builtin__
+# builtins.variables can cross multiple files (for imported functions).
+import builtins
 
 
 # Constant parameters.
@@ -141,13 +142,13 @@ def start_SERVER_service(vehicle, is_leader, local_host):
     threading.Thread(target=SERVER_send_heading_direction, args=(vehicle, local_host,)).start()
     print('{} - Thread SERVER_send_heading_direction is started!'.format(time.ctime()))
     # 3) Start send follower status command.
-    #    Be sure you have decleared a global variable __builtin__.status_waitForCommand.
+    #    Be sure you have decleared a global variable builtins.status_waitForCommand.
     threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
     print('{} - Thread SERVER_send_status has started!'.format(time.ctime()))
     # Leader drone does not need the following service.
     if not is_leader:
         # 4) Start SERVER_receive_and_execute_immediate_command service.
-        # Be sure you have decleared a global variable __builtin__.status_waitForCommand.
+        # Be sure you have decleared a global variable builtins.status_waitForCommand.
         threading.Thread(target=SERVER_receive_and_execute_immediate_command, args=(local_host,)).start()
         print('{} - Thread SERVER_receive_and_execute_leader_immediate_command has been started!'.format(time.ctime()))
 '''
@@ -167,7 +168,7 @@ def start_SERVER_service(vehicle, local_host):
                      args=(vehicle, local_host,)).start()
     print('{} - Thread SERVER_send_heading_direction is started!'.format(time.ctime()))
     # 3) Start send follower status command.
-    #    Be sure you have decleared a global variable __builtin__.status_waitForCommand.
+    #    Be sure you have decleared a global variable builtins.status_waitForCommand.
     threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
     print('{} - Thread SERVER_send_status has started!'.format(time.ctime()))
 
@@ -185,7 +186,7 @@ def SERVER_send_gps_coordinate(vehicle, local_host):
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind to the port
-    msg_socket.bind((local_host, __builtin__.port_gps))
+    msg_socket.bind((local_host, builtins.port_gps))
     msg_socket.listen(5)                 # Now wait for client connection.
     print('{} - SERVER_send_gps_coordinate() is started!'.format(time.ctime()))
     while True:
@@ -222,7 +223,7 @@ def SERVER_send_heading_direction(vehicle, local_host):
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind to the port
-    msg_socket.bind((local_host, __builtin__.port_heading))
+    msg_socket.bind((local_host, builtins.port_heading))
     msg_socket.listen(5)
     print('{} - SERVER_send_heading_direction() is started!'.format(time.ctime()))
     while True:
@@ -251,7 +252,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind to the port
-    msg_socket.bind((local_host, __builtin__.port_immediate_command))
+    msg_socket.bind((local_host, builtins.port_immediate_command))
     msg_socket.listen(5)                 # Now wait for client connection.
     print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
     while True:
@@ -267,31 +268,31 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             # Execute received command.
             exec(immediate_command_str, globals())
             # When command is executed, change status to 'wait for command'.
-            __builtin__.status_waitForCommand = True
+            builtins.status_waitForCommand = True
             print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(),
                   immediate_command_str))
-        # If command is not 'Break', and __builtin__.status_waitForCommand is true, execute command immediately.
+        # If command is not 'Break', and builtins.status_waitForCommand is true, execute command immediately.
         else:  # immediate_command_str is not 'air_break()'
-            if __builtin__.status_waitForCommand == True:
-                # Change __builtin__.status_waitForCommand to False to block other calls.
-                __builtin__.status_waitForCommand = False
+            if builtins.status_waitForCommand == True:
+                # Change builtins.status_waitForCommand to False to block other calls.
+                builtins.status_waitForCommand = False
                 # Execute immediate command.
                 exec(immediate_command_str, globals())
-                # Change __builtin__.status_waitForCommand to True to enable other calls.
-                __builtin__.status_waitForCommand = True
+                # Change builtins.status_waitForCommand to True to enable other calls.
+                builtins.status_waitForCommand = True
                 print(
                     '{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
-            else:  # __builtin__.status_waitForCommand == False:
-                print('{} - Omit immediate command \'{}\', because __builtin__.status_waitForCommand is False!'.format(
+            else:  # builtins.status_waitForCommand == False:
+                print('{} - Omit immediate command \'{}\', because builtins.status_waitForCommand is False!'.format(
                     time.ctime(), immediate_command_str))
         # Socket is destroyed when message has been sent.
         client_connection.close()
 
 # =============================================================
 
-# This is a server to send __builtin__.status_waitForCommand to requester.
+# This is a server to send builtins.status_waitForCommand to requester.
 # TO START IT:
-# Declare a global variable __builtin__.status_waitForCommand in main function.
+# Declare a global variable builtins.status_waitForCommand in main function.
 # threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
 # print(' Thread SERVER_send_status has started!')
 
@@ -301,7 +302,7 @@ def SERVER_send_status(local_host):
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind to the port
-    msg_socket.bind((local_host, __builtin__.port_status))
+    msg_socket.bind((local_host, builtins.port_status))
     msg_socket.listen(5)                 # Now wait for client connection.
     print('{} - SERVER_send_status() is started!'.format(time.ctime()))
     while True:
@@ -310,7 +311,7 @@ def SERVER_send_status(local_host):
         client_connection, client_address = msg_socket.accept()
         print('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
         # Send message to client.
-        client_connection.send(str(int(__builtin__.status_waitForCommand)))
+        client_connection.send(str(int(builtins.status_waitForCommand)))
         # Socket is destroyed when message has been sent.
         client_connection.close()
 
@@ -325,7 +326,7 @@ def CLIENT_send_immediate_command(remote_host, immediate_command_str):
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         client_socket.connect(
-            (remote_host, __builtin__.port_immediate_command))
+            (remote_host, builtins.port_immediate_command))
     except socket.error as error_msg:
         print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         print('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(
@@ -343,7 +344,7 @@ def CLIENT_request_status(remote_host):
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        client_socket.connect((remote_host, __builtin__.port_status))
+        client_socket.connect((remote_host, builtins.port_status))
     except socket.error as error_msg:
         print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         print('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
@@ -362,7 +363,7 @@ def CLIENT_request_gps(remote_host):
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        client_socket.connect((remote_host, __builtin__.port_gps))
+        client_socket.connect((remote_host, builtins.port_gps))
     except socket.error as error_msg:
         print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         print(
@@ -383,7 +384,7 @@ def CLIENT_request_heading_direction(remote_host):
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        client_socket.connect((remote_host, __builtin__.port_heading))
+        client_socket.connect((remote_host, builtins.port_heading))
     except socket.error as error_msg:
         print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         print('{} - CLIENT_request_heading_direction({}) is not executed!'.format(time.ctime(), remote_host))
@@ -1056,7 +1057,7 @@ def fly_follow_leader_onCommand(args_tuple_str):
     global leader_host
     
     # Block other commands.
-    __builtin__.status_waitForCommand = False
+    builtins.status_waitForCommand = False
     
     # Get parameters. All original parameters are in string type.
     frame = str(args_tuple_str[0].strip()) # Relative to leader's body frame, or to local frame.
@@ -1092,7 +1093,7 @@ def fly_follow_leader_onCommand(args_tuple_str):
     else:
         print('{} - Vehicle is not armed.'.format(time.ctime()))
     # Enable other commands.
-    __builtin__.status_waitForCommand = True
+    builtins.status_waitForCommand = True
 '''
 # ===================================================
 

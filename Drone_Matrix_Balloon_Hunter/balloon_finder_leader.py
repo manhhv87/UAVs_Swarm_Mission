@@ -3,7 +3,8 @@
 
 import time
 import numpy as np
-import Queue
+# import Queue
+from queue import Queue
 import threading
 from datetime import datetime
 import netifaces as ni
@@ -18,7 +19,7 @@ from MyPythonModule.v4l2_device import Camera
 from MyPythonModule import ObjectDetection as od
 from MyPythonModule import DroneControlFunction as dcf
 # __builtin.variables can cross multiple files (for imported functions).
-import __builtin__
+import builtins
 
 
 # Get local host IP.
@@ -47,10 +48,10 @@ else:
 
 # Reserved port (constants, do not change).
 # The port number should be exactly the same as that in follower drone.
-__builtin__.port_gps = 60001
-__builtin__.port_status = 60002
-__builtin__.port_immediate_command = 60003
-__builtin__.port_heading = 60004
+builtins.port_gps = 60001
+builtins.port_status = 60002
+builtins.port_immediate_command = 60003
+builtins.port_heading = 60004
 
 # IP list (constants, do not change):
 iris1_host = '192.168.2.101'
@@ -72,22 +73,22 @@ vehicle_temp = connect('/dev/ttyUSB0', baud=57600, wait_ready=True)
 while not 'vehicle_temp' in locals():
     print('{} - Waiting for vehicle connection...'.format(time.ctime()))
     time.sleep(1)
-__builtin__.vehicle = vehicle_temp
+builtins.vehicle = vehicle_temp
 print('{} - Vehicle is connected!'.format(time.ctime()))
 # Enable safety switch(take effect after reboot pixhawk).
-__builtin__.vehicle.parameters['BRD_SAFETYENABLE'] = 1  # Enable
+builtins.vehicle.parameters['BRD_SAFETYENABLE'] = 1  # Enable
 # vehicle.parameters['BRD_SAFETYENABLE'] = 0 # Disable
 
 # Start leader server services.
-dcf.start_SERVER_service(__builtin__.vehicle, local_host)
+dcf.start_SERVER_service(builtins.vehicle, local_host)
 
 # Start leader connection checker. Drone will return home once lost connection.
 router_host = '192.168.2.1'
 threading.Thread(target=dcf.CHECK_network_connection, args=(
-    __builtin__.vehicle, router_host,), kwargs={'wait_time': 10}).start()
+    builtins.vehicle, router_host,), kwargs={'wait_time': 10}).start()
 
 # Get GPS coordinate of leader's launch location.
-leader_gps_home = __builtin__.vehicle.location.global_relative_frame
+leader_gps_home = builtins.vehicle.location.global_relative_frame
 leader_lat_home = leader_gps_home.lat
 leader_lon_home = leader_gps_home.lon
 leader_alt_home = leader_gps_home.alt
@@ -148,7 +149,7 @@ cameraL.stream_on()
 cameraR.stream_on()
 
 # Arm leader drone without RC.
-dcf.arm_no_RC(__builtin__.vehicle)
+dcf.arm_no_RC(builtins.vehicle)
 
 ########################################## Coordinate Follower Drones ##########################################
 
@@ -157,13 +158,13 @@ dcf.wait_for_follower_ready(follower_host_tuple)  # This is a blocking call.
 
 # Take off.
 # Wait time is 3 seconds.
-threading.Thread(target=dcf.takeoff, args=(__builtin__.vehicle, 3,)).start()
+threading.Thread(target=dcf.takeoff, args=(builtins.vehicle, 3,)).start()
 # Followers takeoff and hover. Send takeoff command to all followers. Immediate command must be in string type.
 # Send command to all followers.
 for follower in follower_host_tuple:
     print('{} - Sending immediate command to : {}.'.format(time.ctime(), follower))
     dcf.CLIENT_send_immediate_command(
-        follower, 'dcf.takeoff(__builtin__.vehicle,3)')
+        follower, 'dcf.takeoff(builtins.vehicle,3)')
 
 ########################################## Start Balloon_destroyer ##########################################
 
@@ -171,13 +172,13 @@ for follower in follower_host_tuple:
 leader_path_to_save_frames = '/home/iris1/saved_frames/{:%Y%m%d_%H-%M-%S}'.format(
     datetime.now()) + '/'
 # Instantiate Balloon_destroyer class.
-balloon_terminator = od.Balloon_destroyer(__builtin__.vehicle, cameraL, cameraR,
+balloon_terminator = od.Balloon_destroyer(builtins.vehicle, cameraL, cameraR,
                                           red_color_range_pair, time_out, max_altitude, max_radius, leader_path_to_save_frames)
 # Start find_and_destroy_balloon()
 threading.Thread(target=balloon_terminator.find_and_destroy_balloon).start()
 
 # For follower drones.
-command_str_factory = 'balloon_terminator=od.Balloon_destroyer(__builtin__.vehicle,cameraL,cameraR,{},{},{},{},"{}")'
+command_str_factory = 'balloon_terminator=od.Balloon_destroyer(builtins.vehicle,cameraL,cameraR,{},{},{},{},"{}")'
 
 # iris1 is leader, follower 1,2,3 are iris 2,3,4.
 follower1_path_to_save_frames = '/home/iris2/saved_frames/{:%Y%m%d_%H-%M-%S}'.format(

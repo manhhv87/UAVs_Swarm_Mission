@@ -7,7 +7,7 @@ from MyPythonModule import v4l2
 from fcntl import ioctl
 import mmap
 import ctypes
-from cStringIO import StringIO  # io is slow, use cStringIO instead.
+from io import StringIO  # io is slow, use cStringIO instead.
 from PIL import Image
 import time
 import numpy as np

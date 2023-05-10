@@ -5,8 +5,9 @@ import cv2
 import time
 from collections import deque
 from MyPythonModule import DroneControlFunction as dcf
-# __builtin.variables can cross multiple files (for imported functions).
-import __builtin__
+
+# builtins.variables can cross multiple files (for imported functions).
+import builtins
 
 ########################################################################################
 

@@ -23,20 +23,20 @@ import sys
 from MyPythonModule.v4l2_device import Camera
 from MyPythonModule import ObjectDetection as od
 from MyPythonModule import DroneControlFunction as dcf
-# __builtin.variables can cross multiple files (for imported functions).
-import __builtin__
+# builtins.variables can cross multiple files (for imported functions).
+import builtins
 
 ############################################################################################################################
 
 # Create global variable to indicate follower status.
-__builtin__.status_waitForCommand = False
+builtins.status_waitForCommand = False
 
 # Reserved port.
 # The port number should be exactly the same as that in leader drone.
-__builtin__.port_gps = 60001
-__builtin__.port_status = 60002
-__builtin__.port_immediate_command = 60003
-__builtin__.port_heading = 60004
+builtins.port_gps = 60001
+builtins.port_status = 60002
+builtins.port_immediate_command = 60003
+builtins.port_heading = 60004
 
 ############################################################################################################################
 
@@ -51,7 +51,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Bind to the port
-    msg_socket.bind((local_host, __builtin__.port_immediate_command))
+    msg_socket.bind((local_host, builtins.port_immediate_command))
     msg_socket.listen(5)                 # Now wait for client connection.
     print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
     while True:
@@ -67,22 +67,22 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             # Execute received command.
             exec(immediate_command_str, globals())
             # When command is executed, change status to 'wait for command'.
-            __builtin__.status_waitForCommand = True
+            builtins.status_waitForCommand = True
             print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(),
                   immediate_command_str))
-        # If command is not 'Break', and __builtin__.status_waitForCommand is true, execute command immediately.
+        # If command is not 'Break', and builtins.status_waitForCommand is true, execute command immediately.
         else:  # immediate_command_str is not 'air_break()'
-            if __builtin__.status_waitForCommand == True:
-                # Change __builtin__.status_waitForCommand to False to block other calls.
-                __builtin__.status_waitForCommand = False
+            if builtins.status_waitForCommand == True:
+                # Change builtins.status_waitForCommand to False to block other calls.
+                builtins.status_waitForCommand = False
                 # Execute immediate command.
                 exec(immediate_command_str, globals())
-                # Change __builtin__.status_waitForCommand to True to enable other calls.
-                __builtin__.status_waitForCommand = True
+                # Change builtins.status_waitForCommand to True to enable other calls.
+                builtins.status_waitForCommand = True
                 print(
                     '{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
-            else:  # __builtin__.status_waitForCommand == False:
-                print('{} - Omit immediate command \'{}\', because __builtin__.status_waitForCommand is False!'.format(
+            else:  # builtins.status_waitForCommand == False:
+                print('{} - Omit immediate command \'{}\', because builtins.status_waitForCommand is False!'.format(
                     time.ctime(), immediate_command_str))
         # Socket is destroyed when message has been sent.
         client_connection.close()
@@ -122,14 +122,14 @@ vehicle_temp = connect('/dev/ttyUSB0', baud=57600, wait_ready=True)
 while not 'vehicle_temp' in locals():
     print('{} - Waiting for vehicle connection...'.format(time.ctime()))
     time.sleep(1)
-__builtin__.vehicle = vehicle_temp
+builtins.vehicle = vehicle_temp
 print('{} - Vehicle is connected!'.format(time.ctime()))
 # Enable safety switch(take effect after reboot pixhawk).
-__builtin__.vehicle.parameters['BRD_SAFETYENABLE'] = 1  # Enable
+builtins.vehicle.parameters['BRD_SAFETYENABLE'] = 1  # Enable
 # vehicle.parameters['BRD_SAFETYENABLE'] = 0 # Disable
 
 # Start server services.
-dcf.start_SERVER_service(__builtin__.vehicle, local_host)
+dcf.start_SERVER_service(builtins.vehicle, local_host)
 
 # Start SERVER_receive_and_execute_immediate_command. NO dcf., this is the newly defined in main.
 threading.Thread(
@@ -138,7 +138,7 @@ threading.Thread(
 # Start connection checker. Drone will return home once lost connection.
 router_host = '192.168.2.1'
 threading.Thread(target=dcf.CHECK_network_connection, args=(
-    __builtin__.vehicle, router_host,), kwargs={'wait_time': 10}).start()
+    builtins.vehicle, router_host,), kwargs={'wait_time': 10}).start()
 
 ########################################## Initialize follower Balloon Finder ##########################################
 
@@ -166,9 +166,9 @@ cameraR.stream_on()
 
 # Self arm.
 print('{} - Self arming...'.format(time.ctime()))
-dcf.arm_no_RC(__builtin__.vehicle)  # Blocking call.
+dcf.arm_no_RC(builtins.vehicle)  # Blocking call.
 # Once armed, change status_waitForCommand to True.
-__builtin__.status_waitForCommand = True
-print('{} - __builtin__.status_waitForCommand = {}'.format(time.ctime(),
-      __builtin__.status_waitForCommand))
+builtins.status_waitForCommand = True
+print('{} - builtins.status_waitForCommand = {}'.format(time.ctime(),
+      builtins.status_waitForCommand))
 print('{} - Follower is armed!'.format(time.ctime()))
