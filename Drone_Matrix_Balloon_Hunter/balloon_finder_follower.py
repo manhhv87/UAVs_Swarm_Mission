@@ -4,9 +4,13 @@
 
 import time
 import numpy as np
-import Queue
+# import Queue
+from multiprocessing import Queue
 import threading
 from datetime import datetime
+
+# Step 1: Add this to your PATH environment variables: C:\Program Files (x86)\Windows Kits\10\bin\x64
+# Step 2: Copy these files rc.exe & rcdll.dll from C:\Program Files (x86)\Windows Kits\10\bin\10.0.20348.0\x64 to C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin
 import netifaces as ni
 import socket
 import dronekit
